@@ -1,0 +1,92 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:jee="http://www.springframework.org/schema/jee" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.2.xsd http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-3.2.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd">
+
+
+	<bean id="employeeDAO" class="EmployeeDAOImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	
+	<bean id="jdbcEmployeeDAO" class="JDBCEmployeeDAOImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	
+	<!-- <bean id="dataSource"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+
+		<property name="driverClassName" value="oracle.jdbc.driver.OracleDriver" />
+		<property name="url" value="jdbc:oracle:thin:@localhost:1521:xe" />
+		<property name="username" value="satya" />
+		<property name="password" value="admin" />
+	</bean> -->
+	
+	<!--                                                                      -->
+ <!-- Configuration for encryptor, based on environment variables.         -->
+ <!--                                                                      -->
+ <!-- In this example, the encryption password will be read from an        -->
+ <!-- environment variable called "APP_ENCRYPTION_PASSWORD" which, once    --> 
+ <!-- the application has been started, could be safely unset.             -->
+ <!--                                                                      -->
+ <bean id="environmentVariablesConfiguration"
+     class="org.jasypt.encryption.pbe.config.EnvironmentStringPBEConfig">
+   <property name="algorithm" value="PBEWithMD5AndDES" />
+   <property name="passwordEnvName" value="APP_ENCRYPTION_PASSWORD" />
+ </bean>
+  
+  
+ <!--                                                                      -->
+ <!-- The will be the encryptor used for decrypting configuration values.  -->
+ <!--                                                                      -->
+ <bean id="configurationEncryptor"
+     class="org.jasypt.encryption.pbe.StandardPBEStringEncryptor">
+   <property name="config" ref="environmentVariablesConfiguration" />
+ </bean>
+
+
+ <!--                                                                      -->
+ <!-- The EncryptablePropertyPlaceholderConfigurer will read the           -->
+ <!-- .properties files and make their values accessible as ${var}.        -->
+ <!--                                                                      -->
+ <!-- Our "configurationEncryptor" bean (which implements                  --> 
+ <!-- org.jasypt.encryption.StringEncryptor) is set as a constructor arg.  -->
+ <!--                                                                      -->
+ <bean id="propertyConfigurer"
+     class="org.jasypt.spring31.properties.EncryptablePropertyPlaceholderConfigurer">
+   <constructor-arg ref="configurationEncryptor" />
+   <property name="locations">
+     <list>
+       <value>classpath:application.properties</value>
+     </list>
+   </property>
+   
+ </bean>
+ 
+ <!--                                                                      -->
+ <!-- Our datasource is configured here, in the usual way. Jasypt's        -->
+ <!-- EncryptedPropertyPlaceholderConfigurer will make sure that the       -->
+ <!-- ${datasource.password} file gets decrypted and the DBCP DataSource   -->
+ <!-- will be correctly initialised.                                       -->
+ <!--                                                                      -->
+ <bean id="dataSource"
+     class="org.springframework.jdbc.datasource.DriverManagerDataSource"
+     destroy-method="close">
+   <property name="driverClassName">
+     <value>${datasource.driver}</value>
+   </property>
+   <property name="url">
+     <value>${datasource.url}</value>
+   </property>
+   <property name="username">
+     <value>${datasource.username}</value>
+   </property>
+   <property name="password">
+     <value>${datasource.password}</value>
+   </property>
+ </bean>
+	
+</beans>
